@@ -12,42 +12,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Use Python 3.10.8-slim as the base image
 FROM python:3.10.8-slim@sha256:49749648f4426b31b20fca55ad854caa55ff59dc604f2f76b57d814e0a47c181 as base
 
+# Create a builder stage based on the base image
 FROM base as builder
 
+# Update and install required packages
 RUN apt-get -qq update \
     && apt-get install -y --no-install-recommends \
         wget g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Download the grpc health probe
+# Download gRPC health probe binary from GitHub releases
 # renovate: datasource=github-releases depName=grpc-ecosystem/grpc-health-probe
 ENV GRPC_HEALTH_PROBE_VERSION=v0.4.18
 RUN wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
 
-# get packages
+# Install Python dependencies from requirements.txt
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
+# Create a stage without gRPC health probe based on the base image
 FROM base as without-grpc-health-probe-bin
-# Enable unbuffered logging
+
+# Enable unbuffered logging and enable profiler
 ENV PYTHONUNBUFFERED=1
-# Enable Profiler
 ENV ENABLE_PROFILER=1
 
+# Set the working directory for the application and Copy Python libraries from the builder stage
 WORKDIR /email_server
-
-# Grab packages from builder
 COPY --from=builder /usr/local/lib/python3.10/ /usr/local/lib/python3.10/
 
-# Add the application
+# Add the application source code and Expose port 8080 for the application
 COPY . .
-
 EXPOSE 8080
+
+# Define the entry point for the container
 ENTRYPOINT [ "python", "email_server.py" ]
 
+# Use the previous stage as base and copy gRPC health probe binary
 FROM without-grpc-health-probe-bin
 
+# Copy the gRPC health probe binary from the builder stage
 COPY --from=builder /bin/grpc_health_probe /bin/grpc_health_probe
