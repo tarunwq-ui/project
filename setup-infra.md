@@ -170,3 +170,13 @@ subjects:
 ### Generate token using service account in the namespace
 
 [Create Token](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/#:~:text=To%20create%20a%20non%2Dexpiring,with%20that%20generated%20token%20data.)
+
+
+Jenkins plug in you have to install for building pipeline - 
+
+### Docker
+### Docker Commons
+### Docker Pipeline
+
+### Kubernetes
+### Kubernetes CLI
