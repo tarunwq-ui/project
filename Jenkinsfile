@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        K8S_SERVER_URL = 'https://E07A3DE46850F6161DCA6712B39CA408.gr7.ap-south-1.eks.amazonaws.com'
+    }
+
     stages {
         stage('Deploy To Kubernetes') {
             steps {
@@ -10,9 +14,9 @@ pipeline {
                     contextName: '',
                     credentialsId: 'k8-token',
                     namespace: 'webapps',
-                    serverUrl: 'https://E07A3DE46850F6161DCA6712B39CA408.gr7.ap-south-1.eks.amazonaws.com'
+                    serverUrl: "${env.K8S_SERVER_URL}"
                 ]]) {
-                    sh "kubectl apply -f deployment-service.yml"
+                    sh 'kubectl apply -f deployment-service.yml'
                 }
             }
         }
@@ -25,11 +29,12 @@ pipeline {
                     contextName: '',
                     credentialsId: 'k8-token',
                     namespace: 'webapps',
-                    serverUrl: 'https://9F39F577334FF23706994135261985F2.gr7.ap-south-1.eks.amazonaws.com'
+                    serverUrl: "${env.K8S_SERVER_URL}"
                 ]]) {
-                    sh "kubectl get svc -n webapps"
+                    sh 'kubectl get svc -n webapps'
                 }
             }
         }
     }
 }
+
